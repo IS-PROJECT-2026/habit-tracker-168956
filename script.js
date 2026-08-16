@@ -1,9 +1,11 @@
+const STORAGE_KEY = "habitTracker.v1";
+
 const form = document.getElementById("habit-form");
 const input = document.getElementById("habit-name");
 const habitList = document.getElementById("habit-list");
 const emptyState = document.getElementById("empty-state");
 
-let habits = [];
+let habits = loadHabits();
 render();
 
 form.addEventListener("submit", (event) => {
@@ -20,6 +22,7 @@ form.addEventListener("submit", (event) => {
     completedDates: []
   });
 
+  persistHabits();
   render();
   form.reset();
   input.focus();
@@ -81,7 +84,38 @@ function render() {
 
 function deleteHabit(id) {
   habits = habits.filter((habit) => habit.id !== id);
+  persistHabits();
   render();
+}
+
+function loadHabits() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .filter((item) => item && typeof item.id === "string" && typeof item.name === "string")
+      .map((item) => ({
+        id: item.id,
+        name: item.name,
+        completedDates: Array.isArray(item.completedDates)
+          ? item.completedDates.filter((date) => typeof date === "string")
+          : []
+      }));
+  } catch {
+    return [];
+  }
+}
+
+function persistHabits() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(habits));
 }
 
 function createId() {
