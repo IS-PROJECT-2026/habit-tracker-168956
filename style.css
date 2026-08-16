@@ -186,3 +186,23 @@ button {
   white-space: nowrap;
   border: 0;
 }
+
+@media (max-width: 640px) {
+  .app {
+    width: min(760px, calc(100% - 1rem));
+    margin: 1rem auto;
+  }
+
+  .habit-form {
+    grid-template-columns: 1fr;
+  }
+
+  .habit-item {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .habit-actions {
+    justify-content: flex-start;
+  }
+}
