@@ -134,7 +134,7 @@ function calculateStreak(completedDates) {
   }
 
   const uniqueDates = dedupeAndSort(completedDates);
-  let streak = 1;
+  let streak = 1; // seed: today already counts
   let cursor = uniqueDates[uniqueDates.length - 1];
 
   for (let i = uniqueDates.length - 2; i >= 0; i -= 1) {
