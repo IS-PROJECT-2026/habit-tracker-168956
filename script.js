@@ -49,6 +49,10 @@ habitList.addEventListener("click", (event) => {
     return;
   }
 
+  if (actionButton.dataset.action === "toggle") {
+    toggleToday(id);
+  }
+
   if (actionButton.dataset.action === "delete") {
     deleteHabit(id);
   }
@@ -92,6 +96,26 @@ function render() {
 
     habitList.appendChild(item);
   }
+}
+
+function toggleToday(id) {
+  const habit = habits.find((entry) => entry.id === id);
+  if (!habit) {
+    return;
+  }
+
+  const today = getTodayIso();
+  const hasToday = habit.completedDates.includes(today);
+
+  if (hasToday) {
+    habit.completedDates = habit.completedDates.filter((date) => date !== today);
+  } else {
+    habit.completedDates.push(today);
+  }
+
+  habit.completedDates = dedupeAndSort(habit.completedDates);
+  persistHabits();
+  render();
 }
 
 function deleteHabit(id) {
