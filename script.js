@@ -65,6 +65,9 @@ function render() {
   emptyState.hidden = true;
 
   for (const habit of habits) {
+    const doneToday = isDoneToday(habit);
+    const streak = calculateStreak(habit.completedDates);
+
     const item = document.createElement("li");
     item.className = "habit-item";
     item.dataset.id = habit.id;
@@ -72,8 +75,17 @@ function render() {
     item.innerHTML = `
       <div class="habit-main">
         <p class="habit-name">${escapeHtml(habit.name)}</p>
+        <p class="habit-meta">Streak: <strong>${streak}</strong> day${streak === 1 ? "" : "s"}</p>
       </div>
       <div class="habit-actions">
+        <button
+          class="toggle-btn ${doneToday ? "is-done" : ""}"
+          data-action="toggle"
+          type="button"
+          aria-pressed="${doneToday}"
+        >
+          ${doneToday ? "Done Today" : "Mark Done"}
+        </button>
         <button class="delete-btn" data-action="delete" type="button">Delete</button>
       </div>
     `;
@@ -86,6 +98,35 @@ function deleteHabit(id) {
   habits = habits.filter((habit) => habit.id !== id);
   persistHabits();
   render();
+}
+
+function isDoneToday(habit) {
+  return habit.completedDates.includes(getTodayIso());
+}
+
+function calculateStreak(completedDates) {
+  if (!completedDates || completedDates.length === 0) {
+    return 0;
+  }
+
+  const uniqueDates = dedupeAndSort(completedDates);
+  let streak = 1;
+  let cursor = uniqueDates[uniqueDates.length - 1];
+
+  for (let i = uniqueDates.length - 2; i >= 0; i -= 1) {
+    const expected = shiftIsoDate(cursor, -1);
+    if (uniqueDates[i] !== expected) {
+      break;
+    }
+    streak += 1;
+    cursor = uniqueDates[i];
+  }
+
+  return streak;
+}
+
+function dedupeAndSort(dates) {
+  return [...new Set(dates)].sort();
 }
 
 function loadHabits() {
@@ -124,6 +165,23 @@ function createId() {
   }
 
   return `habit-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+}
+
+function getTodayIso() {
+  return formatLocalDate(new Date());
+}
+
+function shiftIsoDate(isoDate, dayOffset) {
+  const date = new Date(`${isoDate}T12:00:00`);
+  date.setDate(date.getDate() + dayOffset);
+  return formatLocalDate(date);
+}
+
+function formatLocalDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function escapeHtml(value) {
